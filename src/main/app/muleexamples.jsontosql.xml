@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <db:generic-config name="Generic_Database_Configuration" url="jdbc:sqlserver://${db.host};databaseName=${db.database};integratedSecurity=true" driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver" doc:name="Generic Database Configuration"/>
+    <context:property-placeholder location="environment.properties"/>
+    <flow name="SimpleJsonExample">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/simple" doc:name="HTTP" metadata:id="35589cf7-a917-4af3-abdd-61334d16447c"/>
+        <dw:transform-message doc:name="Transform to Java">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <dw:transform-message doc:name="Flatten To Row and Columns" metadata:id="12633d92-3d8b-4ac9-be93-25c310a1f933">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+[{
+	id: payload.id,
+	year: payload.year as :string,
+	make: payload.make,
+	model: payload.model,
+	color: payload.exterior.color,
+	doors: payload.exterior.doors
+}]]]></dw:set-payload>
+        </dw:transform-message>
+        <db:insert config-ref="Generic_Database_Configuration" bulkMode="true" doc:name="Database">
+            <db:parameterized-query><![CDATA[INSERT INTO dbo.tblFakeVehicle (ID, Year, Make, Model, Color, Doors)
+values(
+#[payload.id],
+#[payload.year],
+#[payload.make],
+#[payload.model],
+#[payload.color],
+#[payload.doors]
+)]]></db:parameterized-query>
+        </db:insert>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </flow>
+    <flow name="RecursiveJsonExample">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/recursive" doc:name="HTTP" metadata:id="35589cf7-a917-4af3-abdd-61334d16447c"/>
+        <dw:transform-message doc:name="Transform to Java">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <logger level="INFO" doc:name="TODO TODO TODO"/>
+    </flow>
+    <flow name="DynamicJsonExample">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dynamic" doc:name="HTTP" metadata:id="a3aaefb2-bf1c-488a-89a3-739a8d3ec2b4"/>
+        <dw:transform-message doc:name="Transform to Java">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <dw:transform-message doc:name="Convert To Key Value List" metadata:id="12633d92-3d8b-4ac9-be93-25c310a1f933">
+            <dw:input-payload doc:sample="sample_data\map.dwl"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+
+%var firstMap = payload mapObject {
+	'$$': {
+		key: '$$',
+		value: '$'
+	}
+}
+---
+firstMap map {
+	key: $.key,
+	value: $.value
+}
+]]></dw:set-payload>
+        </dw:transform-message>
+        <db:insert config-ref="Generic_Database_Configuration" bulkMode="true" doc:name="Database">
+            <db:parameterized-query><![CDATA[INSERT INTO dbo.tblFakeKeyValue ([Key], [Value])
+values(
+#[payload.key],
+#[payload.value]
+)]]></db:parameterized-query>
+
+        </db:insert>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+
+    </flow>
+</mule>

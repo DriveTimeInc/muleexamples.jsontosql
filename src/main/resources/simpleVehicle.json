@@ -1,0 +1,10 @@
+{
+	"id" : 873749479,
+	"year": 2017,
+	"make" : "Chevrolet",
+	"model" : "Silverado",
+	"exterior" : {
+		"color" : "blue",
+		"doors" : 4
+	}
+}

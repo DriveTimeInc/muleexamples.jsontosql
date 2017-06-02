@@ -1,0 +1,19 @@
+{
+	"id" : 873749479,
+	"name": "qwerty",
+	"reference" : {
+		"relation" : "father",
+		"person" : {
+			"id" : 321634,
+			"name": "asdf",
+			"reference" : {
+				"relation" : "Third cousin removed",
+				"person" : {
+					"id" : 18979,
+					"name": "jklm",
+					"reference" : null
+				}
+			}
+		}
+	}
+}
