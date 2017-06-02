@@ -49,18 +49,10 @@ values(
         </db:insert>
         <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
-    <flow name="RecursiveJsonExample">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/recursive" doc:name="HTTP" metadata:id="35589cf7-a917-4af3-abdd-61334d16447c"/>
-        <dw:transform-message doc:name="Transform to Java">
-            <dw:set-payload><![CDATA[%dw 1.0
-%output application/java
----
-payload]]></dw:set-payload>
-        </dw:transform-message>
-        <logger level="INFO" doc:name="TODO TODO TODO"/>
-    </flow>
+
     <flow name="DynamicJsonExample">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="/dynamic" doc:name="HTTP" metadata:id="a3aaefb2-bf1c-488a-89a3-739a8d3ec2b4"/>
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/dynamic" doc:name="HTTP"/>
+
         <dw:transform-message doc:name="Transform to Java">
             <dw:set-payload><![CDATA[%dw 1.0
 %output application/java
